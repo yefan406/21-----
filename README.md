@@ -1,125 +1,102 @@
-# 地瓜机器人智慧医疗挑战赛
-
-# “蒙的全队”全自主医疗车方案备案
-
-第二十一届全国大学生智能汽车竞赛 · 本科组
-
+# Sweet Potato Robot Intelligent Medical Challenge
+# Full Autonomous Medical Vehicle Solution Documentation – Team Mengde
+The 21st National University Intelligent Vehicle Competition | Undergraduate Group
 ---
-
-## 备案摘要
-
-| 项目 | 内容 |
+## Documentation Summary
+| Item | Content |
 |---|---|
-| 参赛单位 | 南通理工学院 |
-| 赛队名称 | 蒙的全队 |
-| 所属赛区 | 华东赛区 |
-| 参赛模式 | RDK X5车载全自主运行 |
-| 技术主线 | 航向积分判圈、分级任务编排、视觉避障、图生文双通道发布 |
+| Participating Institution | Nantong Institute of Technology |
+| Team Name | Mengde Team |
+| Competition Division | East China Division |
+| Operation Mode | Fully autonomous onboard operation based on RDK X5 |
+| Core Technical Lines | Heading Integration for Lap Counting, Hierarchical Task Scheduling, Visual Obstacle Avoidance, Dual-channel Image-to-Text Publishing |
 
-## 第一部分　人员信息
+## Part 1 Team Information
+Team Leader: Zhu Shiyu, Contact Number: 16621340390
+Team Members: Zhu Shiyu, Geng Jiayi, Li Yilin, Liu Qi
+Instructors: Wang Qi, Wang Junlong
+The team participates in the undergraduate group of the Sweet Potato Robot Intelligent Medical Challenge.
 
-队长为朱诗于，联系电话16621340390。参赛成员由朱诗于、耿嘉怿、李懿霖、刘齐组成，指导教师为王琪、王俊龙。队伍参加地瓜机器人智慧医疗挑战赛本科组。
+After the vehicle departs, all perception, computation, path planning and vehicle control logic run locally on the onboard RDK X5. No task commands or motion instructions are sent to the vehicle by team members via wireless network, remote controllers, keyboards or other external devices.
 
-比赛发车后，全部感知、计算、路径决策和车辆控制在车载RDK X5上完成。队员不通过无线网络、遥控器、键盘或其他设备向车辆发送任务信息和运动指令。
+## Part 2 Hardware Platform
+### 2.1 Core Computing Unit
+The system takes the Sweet Potato Robot RDK X5 development board as its core computing hardware.
+The RDK X5 is equipped with an octa-core Arm Cortex-A55 processor, a 10 TOPS INT8 BPU, and abundant interfaces including camera, USB, HDMI, Ethernet, CAN and storage.
+The official Ubuntu and ROS 2 environments manage all onboard nodes. The BPU undertakes real-time inference for yellow center line detection and competition target recognition, while the CPU handles heading accumulation, phase scheduling, QR code parsing, scene text generation and safety control.
 
-## 第二部分　硬件平台
-
-### 核心计算单元
-
-系统以地瓜机器人RDK X5开发板为计算核心。RDK X5具备八核Arm Cortex-A55处理器、10 TOPS INT8 BPU和丰富的相机、USB、HDMI、网络、CAN及存储接口。官方Ubuntu与ROS 2环境用于组织车载节点，BPU用于黄色中心线和比赛目标的实时推理，CPU负责航向累计、阶段编排、二维码解析、场景文本和安全控制。
-
-### 整车构成
-
-| 子系统 | 硬件构成 | 功能 |
+### 2.2 Overall Vehicle Hardware Composition
+| Subsystem | Hardware Components | Functions |
 |---|---|---|
-| 感知系统 | RDK兼容前向相机 | 连续采集黄色通道、二维码、障碍物、人形立牌、通道口和P点 |
-| 计算系统 | RDK X5、TF卡、散热组件 | 模型推理、任务控制、数据通信及程序存储 |
-| 执行系统 | ROS 2兼容车模底盘 | 执行线速度、角速度、绕障和停车命令 |
-| 交互系统 | HDMI显示屏、车载扬声器 | 分区显示码标与场景文本，并进行语音播报 |
-| 能源系统 | 动力电池、稳压模块、保护线束 | 为计算、感知、交互和驱动单元稳定供电 |
+| Perception System | RDK-compatible forward-facing camera | Continuously detect yellow lanes, QR codes, obstacles, human-shaped signboards, channel entrances and P parking zones |
+| Computing System | RDK X5, TF card, heat dissipation modules | Model inference, task scheduling, data communication and program storage |
+| Execution System | ROS 2-compatible vehicle chassis | Execute linear velocity, angular velocity, obstacle avoidance and parking commands |
+| Human-Machine Interaction System | HDMI display, onboard speaker | Separately display QR code data and scene text, and broadcast voice prompts |
+| Power Supply System | Lithium battery pack, voltage regulator module, protected wiring harness | Stable power supply for computing, perception, interaction and driving modules |
 
-### 物理连接图
-
-| 前向相机 | → | RDK共享图像 | → | 中心线感知／场景防护／二维码读取 |
+### 2.3 Physical Connection Logic
+| Forward Camera | → | RDK Image Stream | → | Center line perception / scene safety detection / QR code decoding |
 |---|---|---|---|---|
-| 底盘里程计 | → | 航向变化积分 | → | 分级任务编排器 |
-| 编排器 | → | 运动指令／抓图请求 | → | 底盘／场景解释器 |
-| 场景解释器 | → | 屏幕文本＋语音文本 | → | 车载显示终端／扬声器 |
+| Chassis Odometry | → | Heading Variation Integration | → | Hierarchical Task Scheduler |
+| Task Scheduler | → | Motion Commands / Image Capture Requests | → | Chassis Controller / Scene Interpreter |
+| Scene Interpreter | → | On-screen Text & Voice Text | → | Onboard Display Terminal / Speaker |
 
-相机和显示屏分别连接RDK图像接口与HDMI接口；底盘通过ROS 2兼容驱动与主控通信。供电线和信号线分束固定，RDK配置主动散热，避免电机干扰和车辆振动影响计算单元。
+The camera connects to the RDK camera interface, and the display connects via HDMI. The chassis communicates with the main controller through ROS 2-compatible drivers. Power cables and signal wires are bundled and fixed separately. The RDK board is equipped with active heat dissipation to avoid calculation interference caused by motor electromagnetic noise and vehicle vibration.
 
-## 第三部分　自主系统设计
-
-### 3.1 分级任务链
-
-三队主控将比赛过程划分为八个连续等级，每一等级只响应对应的有效事件：
-
+## Part 3 Autonomous System Design
+### 3.1 Hierarchical Task Chain
+The main controller divides the entire competition process into eight sequential execution stages. Each stage only responds to its corresponding valid trigger events:
 ```text
-等待码标
+Wait for QR Code Marker
    ↓
-选择方向 ─→ 穿越入口 ─→ C区环行 ─→ 穿越出口
+Select Driving Direction ─→ Pass Entrance ─→ Circle Zone C ─→ Exit Loop Channel
                                       ↓
-             超时停车 ← 返回P区 ← 图生文完成
+             Timeout Parking ← Return to Zone P ← Complete Image-to-Text Generation
                                       ↓
-                                   驻车锁存
-```
-
-二维码原始内容经车载终端显示，合法数字被转换为顺时针或逆时针方向。方向符号同时控制分岔动作和航向积分正负，保证实际环行方向与任务要求一致。
-
-车辆穿过通道入口后开始累计里程计航向变化。系统对相邻航向角做跨±π处理和异常增量过滤，只累计与二维码方向相符的旋转量。当有效航向变化达到完整环行条件、入口再次出现且人形描述已经生成时，主控才开放离场等级。这一方法以车辆姿态变化确认一周，与固定时间判定相互独立。
-
-### 3.2 感知—控制闭环
-
-黄色中心线模型输出车道中心位置，编排器根据图像偏差生成转向指令。场景防护模型识别障碍物、通道口、人形立牌和停车标志；避障激活时，安全控制指令覆盖普通巡线指令。所有候选指令都带有时间有效性，数据中断后车辆自动输出零速度。
-
-```text
-黄色中心偏差 ─→ 转向修正 ─→ 底盘运动
+                                   Locked Parking State
+Raw numeric data parsed from QR codes is displayed on the onboard terminal. Valid numbers are converted into clockwise or counter-clockwise driving directions. Direction signals control both branch lane selection and the sign of heading integration value, ensuring the actual circling direction matches task requirements.
+After the vehicle enters the channel entrance, cumulative calculation of odometry heading variation starts. The system processes cross ±π angle conversion for adjacent heading values and filters abnormal angle jumps; only rotation values consistent with the QR code direction are accumulated.
+The system switches to the exit stage only when three conditions are met: the integrated heading variation completes a full circle, the channel entrance is detected again, and human figure text description generation is finished. This lap-judgment method relies purely on vehicle posture changes, independent of fixed time thresholds.
+3.2 Perception-Control Closed-Loop
+The yellow center line detection model outputs lane offset values. The task scheduler generates steering correction commands based on horizontal image deviation.
+The scene safety model identifies obstacles, channel gates, human-shaped signboards and parking markers. Once obstacle avoidance is triggered, safety control commands override normal line-following instructions.
+All control commands carry a valid time window; the vehicle automatically outputs zero velocity if data transmission is interrupted.
+text
+Yellow Lane Offset ─→ Steering Adjustment ─→ Chassis Motion Output
        ↑                         ↓
-       └──── 相机画面反馈 ────────┘
+       └──── Camera Frame Feedback ────────┘
 
-障碍物事件 ─→ 安全接管 ─→ 绕行 ─→ 恢复中心线闭环
-```
-
-### 3.3 人形识别与信息终端
-
-首次检测到人形立牌后，主控发布一次抓图请求。场景解释器接收人物图像并生成简短描述，结果同时发送到语音合成节点和深色车载显示终端。显示终端上方固定展示码标数字与方向，下方展示人物场景文本；处理中和失败状态使用独立提示，不以状态文字代替有效识别结果。
-
-### 3.4 三项任务执行
-
-**任务一：获取指令。** 车辆从P区自主驶向任务发布点，完成二维码识别，在车载屏幕显示原始数字及顺/逆时针方向，随后执行相应方向的分岔动作。
-
-**任务二：C区巡航。** 车辆经指定通道进入C区，仅沿黄色环形通道行驶。主控按照二维码方向累计航向，遇到障碍物时安全绕行；识别人形立牌后完成图生文及屏显、语音反馈，达到环行条件后从B区指定通道退出。
-
-**任务三：返回停车。** 离开B区后进入寻P等级。系统根据起始位置范围或P点停车消息触发驻车锁存，持续输出零速度，使车辆至少三分之二位于P区并保持静止。
-
-比赛计时采用单调时钟。运行达到180秒，系统从任意等级直接进入截止等级，关闭黄色通道跟踪并保持停车。
-
-## 第四部分　软件资源来源
-
-| 资源类别 | 来源及用途 |
-|---|---|
-| RDK系统与BSP | 地瓜机器人官方镜像及硬件文档，用于板级驱动与外设管理 |
-| TROS与ROS 2功能包 | 地瓜机器人官方开发资料，用于图像传输、消息通信和节点管理 |
-| BPU部署工具 | 地瓜官方模型转换、量化和推理工具，用于板端视觉模型运行 |
-| 底盘基础驱动 | RDK兼容ROS 2底盘接口，用于里程计与速度控制 |
-| 赛事应用程序 | 自主开发的分级编排、航向判圈、避障接管、抓图、场景解释和显示逻辑 |
-
-
-## 第五部分　可靠性设计
-
-### A. 开机自检
-
-启动文件统一加载底盘、相机、图像转换、视觉推理、二维码、主控、场景解释、显示和语音节点。系统检查图像流、模型输出、里程计、显示终端和底盘通信；关键输入尚未建立时保持停车。
-
-### B. 赛道适应
-
-黄色中心线采用连续帧反馈，针对强光、阴影和反光进行相机曝光及速度标定。通道口和人形目标采用多帧结果过滤，降低单帧误检引起的等级跳转。
-
-### C. 安全降级
-
-障碍物事件优先接管车辆，普通巡线在避障结束后恢复。航向积分过滤不合理跳变；二维码只在等待码标等级接受；P点只在返航等级触发；运动数据超时、程序退出、任务完成和180秒截止均锁存零速度。
-
-### D. 备份措施
-
-备用TF卡保存完整系统与工程镜像，备用相机、电源线和结构固定件随车携带。赛前分别进行两种方向环行、障碍物绕行、人形图生文、指定通道出入、P区停车及180秒停止的全流程测试。
-
+Obstacle Detected ─→ Safety Control Takeover ─→ Obstacle Circumvention ─→ Restore Lane-Following Closed-Loop
+3.3 Human Figure Recognition & Information Terminal
+Upon the first detection of a human-shaped signboard, the main controller sends an image capture request once. The scene interpreter receives the captured human figure image and generates a concise text description. The generated text is simultaneously sent to the speech synthesis node and the dark-themed onboard display terminal.
+The upper area of the screen permanently shows QR code numbers and circling directions, while the lower area presents scene description text. Independent prompt texts are used for processing and recognition failure states, which will not replace valid identification results.
+3.4 Three Core Task Execution Flow
+Task 1: Receive Driving Instructions
+The vehicle departs Zone P autonomously toward the QR code posting point, scans and decodes the QR code, displays raw numeric data and clockwise/counter-clockwise direction on the screen, then executes lane branch actions corresponding to the parsed direction.
+Task 2: Cruise in Zone C
+The vehicle enters Zone C through the designated channel and drives only along the yellow circular track. The main controller accumulates heading angles according to the QR code direction, safely bypasses detected obstacles, generates image-to-text content with screen and voice feedback after detecting human signboards, and exits Zone C through the specified channel in Area B once full circling requirements are satisfied.
+Task 3: Return and Park
+After exiting Area B, the system switches to Zone P homing stage. The parking lock state is triggered when the vehicle enters the starting position range or receives the P-zone parking signal, continuously outputting zero velocity to ensure at least two-thirds of the vehicle body stays within Zone P and remains stationary.
+Competition timing relies on a monotonic system clock. When total runtime reaches 180 seconds, the system jumps directly to the termination stage from any running state, disables yellow lane tracking and maintains full stop.
+Part 4 Software Resource Sources
+表格
+Resource Category	Source & Application Purpose
+RDK System & BSP	Official Sweet Potato Robot image and hardware documentation, for board-level driver and peripheral management
+TROS & ROS 2 Function Packages	Official development materials of Sweet Potato Robot, for image transmission, message communication and node scheduling
+BPU Deployment Tools	Official model conversion, quantization and inference toolkit, for visual model deployment on the edge board
+Basic Chassis Drivers	RDK-compatible ROS 2 chassis interface, for odometry reading and velocity regulation
+Competition Application Program	Self-developed modules including hierarchical task scheduling, heading lap counting, obstacle avoidance takeover, image capture, scene interpretation and display logic
+Part 5 Reliability Optimization Design
+A. Power-On Self-Check
+The startup script sequentially loads chassis, camera, image conversion, visual inference, QR code decoding, main control, scene interpretation, display and voice nodes.
+The system automatically checks image streams, model inference outputs, odometry data, display terminal connection and chassis communication. The vehicle remains stationary if critical input channels are not established.
+B. Track Environment Adaptation
+The yellow center line algorithm adopts continuous frame feedback. Camera exposure parameters and driving speed are calibrated to adapt to strong light, shadow and reflective track surfaces.
+Multi-frame result filtering is applied to channel entrance and human target detection to prevent false single-frame detection from triggering incorrect stage jumps.
+C. Safety Degradation Mechanism
+Obstacle detection signals have highest priority to take over vehicle control; normal line-following resumes after obstacle avoidance completes.
+Unreasonable heading angle jumps are filtered during integration. QR code signals are only accepted in the QR waiting stage; P-zone parking trigger only activates in the homing stage.
+Zero velocity locking is activated under multiple abnormal conditions: motion data timeout, program exit, task completion and 180-second competition timeout.
+D. Backup Solutions
+A spare TF card stores the complete system and project mirror. Backup cameras, power cables and structural fixing parts are carried on the vehicle.
+Pre-competition full-process tests cover clockwise/counter-clockwise circling, obstacle bypass, human figure image-to-text generation, designated channel entry & exit, Zone P parking and automatic stop at 180 seconds.
